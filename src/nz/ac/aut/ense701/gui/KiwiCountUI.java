@@ -4,7 +4,8 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import javax.swing.JOptionPane;
 import nz.ac.aut.ense701.gameModel.Game;
 import nz.ac.aut.ense701.gameModel.GameEventListener;
@@ -20,9 +21,20 @@ import nz.ac.aut.ense701.gameModel.MoveDirection;
 
 public class KiwiCountUI 
     extends javax.swing.JFrame 
-    implements GameEventListener, KeyListener
+    implements GameEventListener
 {
 
+        private class MyDispatcher implements KeyEventDispatcher {
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent e) {
+            if (e.getID() == KeyEvent.KEY_PRESSED) {
+            } else if (e.getID() == KeyEvent.KEY_RELEASED) {
+            } else if (e.getID() == KeyEvent.KEY_TYPED) {
+                keyTyped(e);
+            }
+            return false;
+        }
+    }
     /**
      * Creates a GUI for the KiwiIsland game.
      * @param game the game object to represent with this GUI.
@@ -36,7 +48,8 @@ public class KiwiCountUI
         initIslandGrid();
         update();
         CenterPanel();
-        addKeyListener(this);
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.addKeyEventDispatcher(new MyDispatcher());
     }
     public void CenterPanel(){
     int width = Toolkit.getDefaultToolkit().getScreenSize().width;
@@ -647,38 +660,26 @@ public class KiwiCountUI
         }
     }
 
-    @Override
     public void keyTyped(KeyEvent e)
     {
-        if(e.getKeyCode() == KeyEvent.VK_W)
+        if(e.getKeyChar() == 'w')
         {
             game.playerMove(MoveDirection.NORTH);
         }
-        else if(e.getKeyCode() == KeyEvent.VK_A)
+        else if(e.getKeyChar() == 'a')
         {
             game.playerMove(MoveDirection.WEST);
         }
-        else if(e.getKeyCode() == KeyEvent.VK_S)
+        else if(e.getKeyChar() == 's')
         {
             game.playerMove(MoveDirection.SOUTH);
         }
-        else if(e.getKeyCode() == KeyEvent.VK_D)
+        else if(e.getKeyChar() == 'd')
         {
             game.playerMove(MoveDirection.EAST);
         }
     }
 
-    @Override
-    public void keyPressed(KeyEvent e)
-    {
-
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e)
-    {
-
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCollect;
