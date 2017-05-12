@@ -6,6 +6,12 @@
 package nz.ac.aut.ense701.gui;
 
 import java.awt.Toolkit;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -30,24 +36,27 @@ public class HiScorePage extends javax.swing.JFrame {
 
     private void loadScores()
     {
-        //TODO: Change winserver-pc to matypatty.zapto.org for testing.
-        try (java.util.Scanner s = new java.util.Scanner(new java.net.URL("http://winserver-pc/ceebs/do.php").openStream())) 
-        {
-            String hiscores = "";
-            String temp = s.useDelimiter("\\A").next();
-            String[] parts = temp.split(",");
-            for(int i = 0; i < parts.length; i++)
-            {
-                String[] score = parts[i].split(";");
-                hiscores += score[0] + " - " + score[1] + "\n";
-            }
+        FileReader fr;
+        String[] rank = new String[20]; 
+        try {
+            fr = new FileReader("HighScore.txt");
+            BufferedReader br = new BufferedReader(fr);
             
-            jTextArea1.setText(hiscores);
+            for (int i = 0; i < 20; i++)
+            { 
+                rank[i] = br.readLine();  
+            }    
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(HiScorePage.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(HiScorePage.class.getName()).log(Level.SEVERE, null, ex);
         }
-        catch(Exception ex)
-        {
-            jTextArea1.setText("Error loading HiScores");
+        String s = "";
+        for (int i = 1; i <= 20; i++)
+        { 
+            s = s + "No."+i+"    "+rank[i - 1]+"\n";
         }
+        this.jTextArea1.setText(s);
     }
     /**
      * This method is called from within the constructor to initialize the form.

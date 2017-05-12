@@ -6,11 +6,23 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import nz.ac.aut.ense701.gameModel.Game;
 import nz.ac.aut.ense701.gameModel.GameEventListener;
 import nz.ac.aut.ense701.gameModel.GameState;
 import nz.ac.aut.ense701.gameModel.MoveDirection;
+import nz.ac.aut.ense701.gameModel.Timer;
 
 /*
  * User interface form for Kiwi Island.
@@ -43,6 +55,7 @@ public class KiwiCountUI
     {
         assert game != null : "Make sure game object is created before UI";
         this.game = game;
+        this.timer = new Timer(this); 
         setAsGameListener();
         initComponents();
         initIslandGrid();
@@ -72,18 +85,17 @@ public class KiwiCountUI
                     this, 
                     game.getLoseMessage(), "Game over!",
                     JOptionPane.INFORMATION_MESSAGE);
-            String name = JOptionPane.showInputDialog(this, "What's your name?");
-            hiScore(name);
             game.createNewGame();
         }
         else if ( game.getState() == GameState.WON )
         {
+            this.score = this.jLabel1.getText();
             JOptionPane.showMessageDialog(
                     this, 
                     game.getWinMessage(), "Well Done!",
                     JOptionPane.INFORMATION_MESSAGE);
-            String name = JOptionPane.showInputDialog(this, "What's your name?");
-            hiScore(name);
+            String name = JOptionPane.showInputDialog(this, "You have used "+this.score+" to win! What's your name?");
+            hiScore(name,this.score);
             game.createNewGame();
         }
         else if (game.messageForPlayer())
@@ -95,39 +107,64 @@ public class KiwiCountUI
         }
     }
     
-    private void hiScore(String name)
+    private void hiScore(String name, String time)
     {
-         try
-        {
-            String score = String.valueOf(game.getKiwiCount());
-            //TODO: Change winserver-pc to matypatty.zapto.org for testing.
-            String url = "http://winserver-pc/ceebs/do.php?action=new&name=" + encodeHTML(name) + "&score=" + encodeHTML(score);
-            new java.util.Scanner(new java.net.URL(url).openStream());
-        }
-        catch(Exception ex)
-        {
+    String score = name + " " + time;
+    String[] rank = RankScore(score);
+    //File in
+        try {
+            File file = new File("HighScore.txt");
+            PrintWriter pw = new PrintWriter(file);
+            for(int i = 0; i < rank.length; i++)
+            {
+                pw.println(rank[i]);
+            }
+            pw.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(KiwiCountUI.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    private static String encodeHTML(String s)
-{
-    StringBuffer out = new StringBuffer();
-    for(int i=0; i<s.length(); i++)
+    private String[] RankScore(String score)
     {
-        char c = s.charAt(i);
-        if(c > 127 || c=='"' || c=='<' || c=='>' || c == 32)
-        {
-           //out.append("&#"+(int)c+";");
+        String[] beforerank = new String[20];
+        int playerscore;
+        String[] str = score.split(" ");
+        playerscore = Integer.valueOf(str[1]);
+        
+        //Read lines
+        try {
+            FileReader fr = new FileReader("HighScore.txt");   
+            BufferedReader br = new BufferedReader(fr);
+            for (int i = 0; i < 20; i++)
+            {
+                beforerank[i] = br.readLine();    
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(KiwiCountUI.class.getName()).log(Level.SEVERE, null, ex);
+        }   catch (IOException ex) {
+            Logger.getLogger(KiwiCountUI.class.getName()).log(Level.SEVERE, null, ex);
         }
-        else
+        //Compare and rank scores
+        int count = 0; String[] afterrank = new String[20];
+        boolean hasRanked = false;int a = 0;
+        for (int i = 0; i < 20; i++)
         {
-            out.append(c);
+            str = null; str = beforerank[i].split(" ");
+            if((playerscore < Integer.valueOf(str[1])) && (!hasRanked))
+            {
+                afterrank[i] = score;
+                a--;hasRanked = true;
+            }
+            else
+            {
+                afterrank[i] = beforerank[a];
+            }
+            a++;
         }
+        return afterrank;
     }
-    return out.toString();
-}
     
-     private void setAsGameListener()
+    private void setAsGameListener()
     {
        game.addGameEventListener(this); 
     }
@@ -180,6 +217,13 @@ public class KiwiCountUI
         btnMoveEast.setEnabled( game.isPlayerMovePossible(MoveDirection.EAST));
         btnMoveSouth.setEnabled(game.isPlayerMovePossible(MoveDirection.SOUTH));
         btnMoveWest.setEnabled( game.isPlayerMovePossible(MoveDirection.WEST));
+        
+        //With any move ment the timer start
+        if(!this.timer.isAlive())
+        {
+            this.timer = new Timer(this); 
+            this.timer.start();
+        }
     }
     
     /** This method is called from within the constructor to
@@ -211,6 +255,7 @@ public class KiwiCountUI
         txtPredatorsLeft = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         exitToMain = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
         javax.swing.JPanel pnlMovement = new javax.swing.JPanel();
         btnMoveNorth = new javax.swing.JButton();
         btnMoveSouth = new javax.swing.JButton();
@@ -237,7 +282,7 @@ public class KiwiCountUI
         pnlIsland.setLayout(pnlIslandLayout);
         pnlIslandLayout.setHorizontalGroup(
             pnlIslandLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 475, Short.MAX_VALUE)
+            .addGap(0, 547, Short.MAX_VALUE)
         );
         pnlIslandLayout.setVerticalGroup(
             pnlIslandLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -362,22 +407,30 @@ public class KiwiCountUI
             }
         });
 
+        jLabel1.setText("0 seconds");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(85, 85, 85)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
                 .addComponent(exitToMain)
-                .addContainerGap(96, Short.MAX_VALUE))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(exitToMain)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(exitToMain)
+                    .addComponent(jLabel1))
+                .addContainerGap())
         );
+
+        jLabel1.getAccessibleContext().setAccessibleName("timeConter");
 
         pnlPlayer.add(jPanel1, java.awt.BorderLayout.PAGE_END);
 
@@ -696,24 +749,31 @@ public class KiwiCountUI
 
     public void keyTyped(KeyEvent e)
     {
-        if(e.getKeyChar() == 'w')
+        if(game.getState() == GameState.PLAYING)
         {
-            game.playerMove(MoveDirection.NORTH);
-        }
-        else if(e.getKeyChar() == 'a')
-        {
-            game.playerMove(MoveDirection.WEST);
-        }
-        else if(e.getKeyChar() == 's')
-        {
-            game.playerMove(MoveDirection.SOUTH);
-        }
-        else if(e.getKeyChar() == 'd')
-        {
-            game.playerMove(MoveDirection.EAST);
+            if(e.getKeyChar() == 'w')
+            {
+                game.playerMove(MoveDirection.NORTH);
+            }
+            else if(e.getKeyChar() == 'a')
+            {
+                game.playerMove(MoveDirection.WEST);
+            }
+            else if(e.getKeyChar() == 's')
+            {
+                game.playerMove(MoveDirection.SOUTH);
+            }
+            else if(e.getKeyChar() == 'd')
+            {
+                game.playerMove(MoveDirection.EAST);
+            }
         }
     }
 
+    public void SetTimerText(String text)
+    {
+        this.jLabel1.setText(text);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCollect;
@@ -725,6 +785,7 @@ public class KiwiCountUI
     private javax.swing.JButton btnMoveWest;
     private javax.swing.JButton btnUse;
     private javax.swing.JButton exitToMain;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lblKiwisCounted;
     private javax.swing.JLabel lblPredators;
@@ -739,5 +800,7 @@ public class KiwiCountUI
     private javax.swing.JLabel txtPredatorsLeft;
     // End of variables declaration//GEN-END:variables
 
-    private Game game;
+    public Game game;
+    public Thread timer;
+    public String score;
 }
