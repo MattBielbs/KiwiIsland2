@@ -29,6 +29,7 @@ public class GridSquarePanel extends javax.swing.JPanel
      * @param column the column to represent
      */
     private BufferedImage[] images = new BufferedImage[3];
+    private BufferedImage background;
     private int numObjects = 0;
     private Color color;
     
@@ -50,15 +51,133 @@ public class GridSquarePanel extends javax.swing.JPanel
         boolean squareVisible = game.isVisible(row, column);
         boolean squareExplored = game.isExplored(row, column);
 
+        
+        String filename = terrain.getName();
+        
+        /*
         switch ( terrain )
         {
-            case SAND     : color = Color.YELLOW; break;
-            case FOREST   : color = Color.GREEN;  break;
-            case WETLAND : color = Color.BLUE; break;
-            case SCRUB : color = Color.DARK_GRAY;   break;
-            case WATER    : color = Color.CYAN;   break;
-            default  : color = Color.LIGHT_GRAY; break;
+            case GRASS: 
+                filename += "grass";
+                color = Color.BLUE;
+                break;
+            case CLIFF:
+                filename += "cliff";
+                color = Color.DARK_GRAY;
+                break;
+            case WATER:
+                filename += "water";
+                color = Color.CYAN;
+                break;
+            default:
+                filename += "grass";
+                color = Color.LIGHT_GRAY;
+                break;
         }
+        */
+        if(terrain.getName() != "grass")
+        {
+            Terrain left = terrain;
+            Terrain right = terrain;
+            Terrain bottom = terrain;
+            Terrain top = terrain;
+            //check left
+            if(column + 1 < game.getIsland().getNumColumns())
+            {
+                left = game.getTerrain(row, column + 1);
+            }
+            //check right
+            if(column - 1 >= 0)
+            {
+                right = game.getTerrain(row, column - 1);
+            }
+            //check bottom
+            if(row + 1 < game.getIsland().getNumRows())
+            {
+                bottom = game.getTerrain(row + 1, column);
+            }
+            //check top
+            if(row - 1 >= 0)
+            {
+                top = game.getTerrain(row - 1, column);
+            }
+
+            if(terrain.getStringRepresentation() != left.getStringRepresentation())
+            {
+                if(terrain.getStringRepresentation() != top.getStringRepresentation())
+                {
+                    //top left corner
+                    filename += top.getName() + "toprh";
+                }
+                else
+                {
+                    if(terrain.getStringRepresentation() != bottom.getStringRepresentation())
+                    {
+                        //Bottom left  corner
+                        filename += bottom.getName() + "botrh";
+                    }
+                    else
+                    {
+                        //left change
+                        filename += left.getName() + "right";
+                    }
+                }
+            }
+            else
+            {
+               //check right
+                if(terrain.getStringRepresentation() != right.getStringRepresentation())
+                {
+                    if(terrain.getStringRepresentation() != top.getStringRepresentation())
+                    {
+                        //top right corner
+                        filename += top.getName() + "toplh";
+                    }
+                    else
+                    {
+                        if(terrain.getStringRepresentation() != bottom.getStringRepresentation())
+                        {
+                            //Bottom right  corner
+                            filename += bottom.getName() + "botlh";
+                        }
+                        else
+                        {
+                            //right change
+                            filename += right.getName() + "left";
+                        }
+                    }
+                }
+                else
+                {
+                    //check top
+                    if(terrain.getStringRepresentation() != top.getStringRepresentation())
+                    {
+                        filename += top.getName() + "top";
+                    }
+                    else if(terrain.getStringRepresentation() != bottom.getStringRepresentation())
+                    {
+                        filename += bottom.getName() + "bot";
+                    }
+                    else
+                    {
+                        //center (do nothing)
+                    }
+                }
+            }
+        }
+
+        filename += ".png";
+        
+        //Load in the correct image
+        try
+        {
+            background = ImageIO.read(new File("images/" + filename));
+        }
+        catch(Exception ex)
+        {
+
+        }
+        
         
         String[] occupants = game.getOccupantStringRepresentation(row,column).split(",");
         numObjects = occupants.length;
@@ -85,9 +204,11 @@ public class GridSquarePanel extends javax.swing.JPanel
             if ( squareVisible && !squareExplored ) 
             {
                 // When explored the colour is brighter
+                /*
                 color = new Color(Math.min(255, color.getRed()   + 128), 
                                   Math.min(255, color.getGreen() + 128), 
                                   Math.min(255, color.getBlue()  + 128));
+                */
             }
             // set border colour according to 
             // whether the player is in the grid square or not
@@ -107,12 +228,14 @@ public class GridSquarePanel extends javax.swing.JPanel
     {
         super.paintComponent(g);
         //Background
-        g.setColor(color);
-        g.fillRect(0, 0, 60, 60);
+        //g.setColor(color);
+        //g.fillRect(0, 0, 60, 60);
         
         //Occupants
         if(game.isVisible(row, column))
         {
+            g.drawImage(background, 0, 0, this);
+        
             for(int i = 0; i < numObjects; i++)
             {
                 g.drawImage(images[i], 8, 8 + (10*i), 30, 30, this);

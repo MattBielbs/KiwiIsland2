@@ -336,7 +336,7 @@ public class Island
         {
             for (int column = 0; column < this.numColumns; column++) 
             {
-                GridSquare square = new GridSquare(Terrain.WATER);
+                GridSquare square = new GridSquare(Terrain.GRASS);
                 islandGrid[row][column] = square;
             }
         }
