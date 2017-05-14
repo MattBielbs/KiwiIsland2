@@ -5,6 +5,13 @@ import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import nz.ac.aut.ense701.gameModel.Game;
 import nz.ac.aut.ense701.gameModel.Terrain;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.image.*;
+import java.awt.Image;
+import java.io.File;
+import javax.imageio.ImageIO;
+import java.awt.Toolkit;
 
 /*
  * Panel for representing a single GridSquare of the island on the GUI.
@@ -21,6 +28,10 @@ public class GridSquarePanel extends javax.swing.JPanel
      * @param row the row to represent
      * @param column the column to represent
      */
+    private BufferedImage[] images = new BufferedImage[3];
+    private int numObjects = 0;
+    private Color color;
+    
     public GridSquarePanel(Game game, int row, int column)
     {
         this.game   = game;
@@ -38,9 +49,7 @@ public class GridSquarePanel extends javax.swing.JPanel
         Terrain terrain   = game.getTerrain(row, column);
         boolean squareVisible = game.isVisible(row, column);
         boolean squareExplored = game.isExplored(row, column);
-        
-        Color      color;
-        
+
         switch ( terrain )
         {
             case SAND     : color = Color.YELLOW; break;
@@ -51,10 +60,27 @@ public class GridSquarePanel extends javax.swing.JPanel
             default  : color = Color.LIGHT_GRAY; break;
         }
         
+        String[] occupants = game.getOccupantStringRepresentation(row,column).split(",");
+        numObjects = occupants.length;
+        
+        if(occupants[0].equals(""))
+            numObjects--;
+            
         if ( squareExplored || squareVisible )
         {
-            // Set the text of the JLabel according to the occupant
-            lblText.setText(game.getOccupantStringRepresentation(row,column));
+            for(int i = 0; i < numObjects; i++)
+            {
+                try
+                {
+                    images[i] = ImageIO.read(new File("images/" + occupants[i]));
+                    images[i] = imageToBufferedImage(makeColorTransparent(images[i], Color.WHITE));
+                }
+                catch(Exception ex)
+                {
+
+                }
+            }
+            
             // Set the colour. 
             if ( squareVisible && !squareExplored ) 
             {
@@ -63,17 +89,66 @@ public class GridSquarePanel extends javax.swing.JPanel
                                   Math.min(255, color.getGreen() + 128), 
                                   Math.min(255, color.getBlue()  + 128));
             }
-            lblText.setBackground(color);
             // set border colour according to 
             // whether the player is in the grid square or not
             setBorder(game.hasPlayer(row,column) ? activeBorder : normalBorder);
         }
         else
         {
-            lblText.setText("");
-            lblText.setBackground(null);
+            color = new Color(255,255,255);
             setBorder(normalBorder);
         }
+        
+        this.repaint();
+    }
+    
+    @Override
+    protected void paintComponent(Graphics g) 
+    {
+        super.paintComponent(g);
+        //Background
+        g.setColor(color);
+        g.fillRect(0, 0, 60, 60);
+        
+        //Occupants
+        if(game.isVisible(row, column))
+        {
+            for(int i = 0; i < numObjects; i++)
+            {
+                g.drawImage(images[i], 8, 8 + (10*i), 30, 30, this);
+            }
+        }
+    }
+    
+    public static BufferedImage imageToBufferedImage(Image image) {
+
+        BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = bufferedImage.createGraphics();
+        g2.drawImage(image, 0, 0, null);
+        g2.dispose();
+
+        return bufferedImage;
+    }
+
+    public static Image makeColorTransparent(BufferedImage im, final Color color) {
+        ImageFilter filter = new RGBImageFilter() {
+
+            // the color we are looking for... Alpha bits are set to opaque
+            public int markerRGB = color.getRGB() | 0xFF000000;
+
+            public final int filterRGB(int x, int y, int rgb) {
+                if ((rgb | 0xFF000000) == markerRGB) {
+                    // Mark the alpha bits as zero - transparent
+                    return 0x00FFFFFF & rgb;
+                } else {
+                    // nothing to do
+                    return rgb;
+                }
+            }
+        };
+
+        ImageProducer ip = new FilteredImageSource(im.getSource(), filter);
+        return Toolkit.getDefaultToolkit().createImage(ip);
     }
     
     /** This method is called from within the constructor to
@@ -85,19 +160,10 @@ public class GridSquarePanel extends javax.swing.JPanel
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        lblText = new javax.swing.JLabel();
-
         setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         setLayout(new java.awt.BorderLayout());
-
-        lblText.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        lblText.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        lblText.setText("content");
-        lblText.setOpaque(true);
-        add(lblText, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel lblText;
     // End of variables declaration//GEN-END:variables
     
     private Game game;

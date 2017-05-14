@@ -30,6 +30,6 @@ public class Fauna extends Occupant
     @Override
     public String getStringRepresentation() 
     {
-          return "F";
+          return this.toString() + ".jpg";
     }    
 }

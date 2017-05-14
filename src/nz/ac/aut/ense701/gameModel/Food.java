@@ -42,6 +42,6 @@ public class Food extends Item
     @Override
     public String getStringRepresentation() 
     {
-        return "E";
+        return this.toString() + ".png";
     }
 }

@@ -90,7 +90,8 @@ public class GridSquare
         String result = "";
         for(Occupant occupant : occupants)
         {
-            result += occupant.getStringRepresentation();
+            //Max of 3 occupants
+            result += occupant.getStringRepresentation() + ",";
         }
         return result;
     } 

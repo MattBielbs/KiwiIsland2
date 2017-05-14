@@ -56,7 +56,7 @@ public class Hazard extends Occupant {
     
     @Override
     public String getStringRepresentation() {
-        return "H";
+        return this.toString() + ".png";
     }   
 
 

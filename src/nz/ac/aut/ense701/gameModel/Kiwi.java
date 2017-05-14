@@ -40,6 +40,6 @@ public class Kiwi  extends Fauna
     @Override
     public String getStringRepresentation() 
     {
-        return "K";
+        return this.toString() + ".png";
     }     
 }

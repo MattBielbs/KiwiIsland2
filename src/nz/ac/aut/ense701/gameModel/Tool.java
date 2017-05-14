@@ -74,7 +74,7 @@ public class Tool extends Item
     @Override
     public String getStringRepresentation() 
     {
-        return "T";
+        return this.toString() + ".png";
     }
 
 }
