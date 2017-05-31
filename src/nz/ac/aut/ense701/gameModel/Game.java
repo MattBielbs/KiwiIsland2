@@ -7,7 +7,8 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Scanner;
 import java.util.Set;
-
+import java.io.*;
+import java.util.Random;
 /**
  * This is the class that knows the Kiwi Island game rules and state
  * and enforces those rules.
@@ -49,7 +50,8 @@ public class Game
         totalKiwis = 0;
         predatorsTrapped = 0;
         kiwiCount = 0;
-        initialiseIslandFromFile("IslandData.txt");
+        generateRandomMap("random.txt");
+        initialiseIslandFromFile("random.txt");//"IslandData.txt"
         drawIsland();
         state = GameState.PLAYING;
         winMessage = "";
@@ -58,6 +60,120 @@ public class Game
         notifyGameEventListeners();
     }
 
+    private void generateRandomMap(String filepath)
+    {
+        try
+        {
+         FileWriter out = new FileWriter(filepath);
+         
+         //Write map size
+         out.write("10, 10,\n");
+         
+         //Place landforms inside a 10x10 array.
+         int[][] landarray = new int[10][10];
+         Random r = new Random();
+         
+         for(int i = 0; i < 10; i++)
+         {
+             int type = r.nextInt(2);//0=grass 1=water 2=cliff
+             
+             //need a while loop to make sure it dosnt intersect
+             int x = 0, y = 0, w = 0, h = 0;
+             boolean itsMint = false;
+             while(!itsMint)
+             {
+                //Position on world
+                x = r.nextInt(9);
+                y = r.nextInt(9);
+
+                //Width and height
+                w = r.nextInt(3) + 2;
+                h = r.nextInt(3) + 2;
+
+                //Stop them overflowing the bounds
+                if(x+w > 10)
+                    w = 10 - (x+w);
+
+                if(y+h > 10)
+                    h = 10 - (y+h);
+
+                //Check for intersection and clear sourroundings 
+                boolean intersect = false;
+                int sx = x - 1;
+                if(sx < 0)
+                    sx = 0;
+                
+                int sy = y - 1;
+                if(sy < 0)
+                    sy = 0;
+                
+                int sxx = x+w+1;
+                if(sxx >= 10)
+                    sxx = 9;
+                
+                int syy = y+h+1;
+                if(syy >= 10)
+                    syy = 9;
+                
+                for(int posx = sx; posx < sxx; posx++)
+                {  
+                    for(int posy = sy; posy < syy; posy++)
+                    {
+                        if(landarray[posx][posy] != 0)
+                            intersect = true;
+                    }
+                }
+                
+                if(!intersect)
+                    itsMint = true;
+             }
+             
+             for(int posx = x; posx < x+w; posx++)
+             {
+                for(int posy = y; posy < y+h; posy++)
+                {
+                    landarray[posx][posy] = type + 1;
+                }
+             }
+             
+
+         }
+         
+         //Write land type
+         for(int i = 0; i < 10; i++)
+         {
+             for(int j = 0; j < 10; j++)
+             {
+                 if(landarray[i][j] == 0)
+                 {
+                     out.write(".");
+                 }
+                 else if(landarray[i][j] == 1)
+                 {
+                     out.write("*");
+                 }
+                 else if(landarray[i][j] == 2)
+                 {
+                     out.write("#");
+                 }
+             }
+             out.write(",\n");
+         }
+         
+            //Write playerinfo
+            out.write("River Song, 0, 2, 100.0, 10.0, 5.0,\n");
+            out.write("3,\n");
+            out.write("E,OrangeJuice,A bottle of juice, 0,5, 2.0, 3.0, 50.0,");
+            out.write("K,Kiwi,A little spotted kiwi,6,4,");
+            out.write("P,Possum,A bushy tailed possum,7,6,");
+            out.close();
+        }
+        catch (IOException e)
+        {
+            
+        }
+    }
+    
     /***********************************************************************************************************************
      * Accessor methods for game data
     ************************************************************************************************************************/
