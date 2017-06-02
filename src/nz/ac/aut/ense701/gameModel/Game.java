@@ -8,6 +8,8 @@ import java.util.Locale;
 import java.util.Scanner;
 import java.util.Set;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 /**
  * This is the class that knows the Kiwi Island game rules and state
@@ -64,34 +66,34 @@ public class Game
     {
         try
         {
-         FileWriter out = new FileWriter(filepath);
+        FileWriter out = new FileWriter(filepath);
          
-         //Write map size
-         out.write("10, 10,\n");
+        //Write map size
+        out.write("10, 10,\n");
          
-         //Place landforms inside a 10x10 array.
-         int[][] landarray = new int[10][10];
-         Random r = new Random();
+        //Place landforms inside a 10x10 array.
+        int[][] landarray = new int[10][10];
+        Random r = new Random();
          
-         for(int i = 0; i < 10; i++)
-         {
-             int type = r.nextInt(2);//0=grass 1=water 2=cliff
+        for(int i = 0; i < 10; i++)
+        {
+            int type = r.nextInt(2);//0=grass 1=water 2=cliff
              
-             //need a while loop to make sure it dosnt intersect
-             int x = 0, y = 0, w = 0, h = 0;
-             boolean itsMint = false;
-             while(!itsMint)
-             {
+            //need a while loop to make sure it dosnt intersect
+            int x = 0, y = 0, w = 0, h = 0;
+            boolean itsMint = false;
+            while(!itsMint)
+            {
                 //Position on world
-                x = r.nextInt(9);
-                y = r.nextInt(9);
+                 x = r.nextInt(9);
+               y = r.nextInt(9);
 
-                //Width and height
-                w = r.nextInt(3) + 2;
-                h = r.nextInt(3) + 2;
+               //Width and height
+               w = r.nextInt(3) + 2;
+               h = r.nextInt(3) + 2;
 
-                //Stop them overflowing the bounds
-                if(x+w > 10)
+               //Stop them overflowing the bounds
+               if(x+w > 10)
                     w = 10 - (x+w);
 
                 if(y+h > 10)
@@ -161,11 +163,60 @@ public class Game
          }
          
             //Write playerinfo
-            out.write("River Song, 0, 2, 100.0, 10.0, 5.0,\n");
-            out.write("3,\n");
-            out.write("E,OrangeJuice,A bottle of juice, 0,5, 2.0, 3.0, 50.0,");
-            out.write("K,Kiwi,A little spotted kiwi,6,4,");
-            out.write("P,Possum,A bushy tailed possum,7,6,");
+            out.write("Player, 0, 2, 100.0, 10.0, 5.0,\n");
+            int T = 5; 
+            int E = 5;
+            int H = 5;
+            int K = 5;
+            int P = 5;
+            int F = 5;
+            int itemNumber = T+E+H+K+P+F;
+            
+            out.write(itemNumber+","); 
+            String[] positionString = RandomPosition(itemNumber,10,10);        int a = 0; 
+         for (int i = 0; i < E; i++)                                 //add E 
+         { 
+             String s = RandomE(); 
+             s = s.replace("occRow,occCol", positionString[a]); 
+            a++; 
+            out.write(s); 
+         } 
+        for (int i = 0; i < T; i++)                                 //add T 
+         { 
+             String s = RandomT(); 
+            s = s.replaceAll("occRow,occCol", positionString[a]); 
+            a++; 
+            out.write(s); 
+        } 
+        for (int i = 0; i < F; i++)                                 //add F 
+         { 
+             String s = RandomF(); 
+             s = s.replaceAll("occRow,occCol", positionString[a]); 
+             a++; 
+            out.write(s); 
+        } 
+         for (int i = 0; i < K; i++)                                 //add K 
+         { 
+             String s = RandomK(); 
+             s = s.replaceAll("occRow,occCol", positionString[a]); 
+             a++; 
+             out.write(s); 
+         } 
+         for (int i = 0; i < P; i++)                                 //add P 
+         { 
+             String s = RandomP(); 
+             s = s.replace("occRow,occCol", positionString[a]); 
+             a++; 
+             out.write(s); 
+         } 
+         for (int i = 0; i < H; i++)                                 //add H 
+         { 
+            String s = RandomH(); 
+             s = s.replace("occRow,occCol", positionString[a]); 
+             a++; 
+             out.write(s); 
+         } 
+             
             out.close();
         }
         catch (IOException e)
@@ -954,8 +1005,107 @@ public class Game
             if ( occupant != null ) island.addOccupant(occPos, occupant);
         }
     }    
-
-
+    private String RandomT() 
+    { 
+        String T = ""; int i; 
+        Random rand = new Random(); 
+        i = rand.nextInt(4); 
+        if(i < 3)       {T = "T,Trap,A trap for predators,occRow,occCol, 1.0, 1.0,";} 
+        else            {T = "T,Screwdriver,A screwdriver that is useful for fixing traps,occRow,occCol, 0.5, 0.75,";} 
+        return T; 
+    } 
+    private String RandomE() 
+    { 
+        String E = ""; int i; 
+        Random rand = new Random(); 
+        i = rand.nextInt(4); 
+        if(i == 0)      {E = "E,Sandwich,A nice and healthy sandwich,occRow,occCol, 2.0, 1.0, 50.0,";} 
+        else if (i == 1){E = "E,Muesli Bar,A juicy and nutricious muesli bar,occRow,occCol, 1.0, 1.0, 50.0,";} 
+        else if (i == 2){E = "E,Apple,A juicy apple, occRow,occCol, 2.0, 3.0, 50.0,";} 
+        else            {E = "E,Orange Juice,A bottle of juice, occRow,occCol, 2.0, 3.0, 50.0,";} 
+        return E; 
+    } 
+    private String RandomH() 
+    { 
+        String H = ""; int i; 
+        Random rand = new Random(); 
+        i = rand.nextInt(7); 
+        if(i == 0)      {H = "H,Cliff,A fall down a steep rocky cliff,occRow,occCol,1.0,";} 
+        else if (i == 1){H = "H,Pond,A fall into a deep pond,occRow,occCol,1.0,";} 
+        else if (i == 2){H = "H,Rock,A large falling rock,occRow,occCol,1.0,";} 
+        else if (i == 3){H = "H,Sunburn,Too much sun has given you bad sunburn and,occRow,occCol,0.3,";} 
+        else if (i == 4){H = "H,Fall,Tripping on roots hurt your ankle and,occRow,occCol,0.5,";} 
+        else if (i == 5){H = "H,Cliff,A fall down a small cliff,occRow,occCol,0.3,";} 
+        else            {H = "H,Broken trap,Your predator trap has broken,occRow,occCol,0.0,";} 
+        return H; 
+    } 
+    private String RandomK() 
+    { 
+        String K = ""; int i; 
+        Random rand = new Random(); 
+        i = rand.nextInt(2); 
+        if(i == 0)      {K = "K,Kiwi,A little spotted kiwi,occRow,occCol,";} 
+        else            {K = "K,Kiwi,A large brown kiwi,occRow,occCol,";} 
+         
+        return K; 
+    } 
+    private String RandomP() 
+    { 
+        String P = ""; int i; 
+        Random rand = new Random(); 
+        i = rand.nextInt(5); 
+        if(i == 0)      {P = "P,Rat,A Norwegian rat,occRow,occCol,";} 
+        else if (i == 1){P = "P,Cat,A wild cat,occRow,occCol,";} 
+        else if (i == 2){P = "P,Kiore,A pacific rat,occRow,occCol,";} 
+        else if (i == 3){P = "P,Stoat,A brown and white stoat,occRow,occCol,";} 
+        else            {P = "P,Possum,A bushy tailed possum,occRow,occCol,";} 
+        return P; 
+    } 
+    private String RandomF() 
+    { 
+        String F = ""; int i; 
+        Random rand = new Random(); 
+        i = rand.nextInt(5); 
+        if(i == 0)      {F = "F,Oystercatcher,A variable oystercatcher sitting on sand,occRow,occCol,";} 
+        else if (i == 1){F = "F,Crab,A scuttling crab,occRow,occCol,";} 
+        else if (i == 2){F = "F,Fernbird,A shy fernbird,occRow,occCol,";} 
+        else if (i == 3){F = "F,Heron,A white-faced heron,occRow,occCol,";} 
+        else if (i == 4){F = "F,Tui,A singing tui,occRow,occCol,";} 
+        else            {F = "F,Robin,A black robin,occRow,occCol,";} 
+        return F; 
+    } 
+    private String[] RandomPosition(int n, int row, int col) 
+    { 
+        String positionString[] = new String[n]; 
+        ArrayList<Boolean> boo = new ArrayList<Boolean>(); 
+        for (int i = 0; i < row*col; i++)                    //set 1D array 
+        { 
+            if (i < n) 
+            { 
+               boo.add(true);  
+            } 
+            else 
+            { 
+                boo.add(false);  
+            } 
+        } 
+        Collections.shuffle(boo);                           //random 1D array 
+          
+        int a = 0; int b = 0; 
+        for (int i = 0; i < row; i++) 
+        { 
+            for (int j = 0; j < col; j++) 
+            { 
+                if(boo.get(a)) 
+                { 
+                    positionString[b] = i+","+j; 
+                    b++; 
+                } 
+                a++; 
+            } 
+        } 
+        return positionString; 
+    } 
     private Island island;
     private Player player;
     private GameState state;
